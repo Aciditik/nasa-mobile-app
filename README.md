@@ -1,50 +1,188 @@
-# Welcome to your Expo app 👋
+# 🌌 NASA Explorer - React Native Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A comprehensive React Native mobile application built with Expo that integrates with NASA's API to provide astronomy enthusiasts with daily space content, favorites management, notes, and push notifications.
 
-## Get started
+## 🚀 Features
 
-1. Install dependencies
+### ✅ Complete CRUD Operations
+- **Create**: Add notes for astronomy pictures
+- **Read**: View NASA's Astronomy Picture of the Day (APOD) and history
+- **Update**: Edit existing notes
+- **Delete**: Remove favorites and notes
 
+### 🔐 Authentication
+- User registration and login
+- Protected routes with authentication context
+- Persistent session management using AsyncStorage
+
+### 🌐 API Integration
+- NASA APOD (Astronomy Picture of the Day)
+- 30-day APOD history
+- Near Earth Objects data
+- Mars Rover photos
+- API Key: `e7nSseioMhSlSXqS9d8heEwRstERuW3K2ALxwhrs`
+
+### 💾 Local Data Storage
+- AsyncStorage for offline data persistence
+- Favorites management
+- Notes with timestamps
+- User session data
+
+### 🔔 Push Notifications (Native Functionality)
+- Daily APOD notifications at 9:00 AM
+- Test notification feature
+- Push token registration
+- Notification permissions handling
+
+### 🧭 Navigation
+- Tab-based navigation (Home, Favorites, Explore, Profile)
+- Stack navigation for detailed views
+- Protected routes with authentication guards
+
+## 📱 Screens
+
+1. **Authentication**
+   - Login Screen
+   - Registration Screen
+
+2. **Main Tabs**
+   - **Home**: Daily APOD with favorite toggle
+   - **Favorites**: Saved astronomy pictures with delete functionality
+   - **Explore**: NASA data exploration
+   - **Profile**: User settings, notifications, and data management
+
+3. **Additional Screens**
+   - APOD History (30 days)
+   - APOD Detail View
+   - Notes Management (per APOD)
+
+## 🛠️ Tech Stack
+
+- **Framework**: React Native with Expo
+- **Language**: TypeScript
+- **Navigation**: Expo Router (file-based routing)
+- **State Management**: React Context API
+- **HTTP Client**: Axios
+- **Storage**: AsyncStorage
+- **Notifications**: expo-notifications
+- **UI Components**: React Native core components
+- **Icons**: @expo/vector-icons (Ionicons)
+
+## 📦 Installation
+
+1. **Install dependencies**
    ```bash
    npm install
    ```
 
-2. Start the app
-
+2. **Start the development server**
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+3. **Run on your device**
+   - Scan the QR code with Expo Go (Android) or Camera app (iOS)
+   - Press `a` for Android emulator
+   - Press `i` for iOS simulator
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🏗️ Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+bg-mobile-app/
+├── app/
+│   ├── (tabs)/              # Tab navigation screens
+│   │   ├── index.tsx        # Home (APOD viewer)
+│   │   ├── favorites.tsx    # Favorites list
+│   │   ├── explore.tsx      # Explore NASA data
+│   │   └── profile.tsx      # User profile & settings
+│   ├── auth/                # Authentication screens
+│   │   ├── login.tsx
+│   │   └── register.tsx
+│   ├── apod/                # APOD related screens
+│   │   ├── history.tsx
+│   │   └── detail/[date].tsx
+│   ├── notes/               # Notes management
+│   │   └── [date].tsx
+│   └── _layout.tsx          # Root layout with providers
+├── contexts/                # React Context providers
+│   ├── AuthContext.tsx      # Authentication state
+│   └── FavoritesContext.tsx # Favorites management
+├── services/                # API and storage services
+│   ├── api.service.ts       # NASA API integration
+│   ├── storage.service.ts   # AsyncStorage wrapper
+│   └── notification.service.ts # Push notifications
+├── components/              # Reusable UI components
+└── constants/               # App constants and themes
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 🔑 Key Features Implementation
 
-## Learn more
+### CRUD Operations
+- **Notes**: Full CRUD on notes associated with APOD entries
+- **Favorites**: Add/remove favorites with persistent storage
+- **User Data**: Create/update/delete user session data
 
-To learn more about developing your project with Expo, look at the following resources:
+### API Calls
+- NASA APOD endpoint integration
+- Error handling and loading states
+- Date-based queries for historical data
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Data Storage
+- AsyncStorage for offline-first approach
+- Favorites persistence
+- Notes with creation/update timestamps
+- Authentication tokens
 
-## Join the community
+### Authentication
+- Mock authentication system (easily replaceable with real backend)
+- Protected route navigation
+- Session persistence
+- Logout functionality
 
-Join our community of developers creating universal apps.
+### Push Notifications
+- Permission requests (iOS & Android)
+- Daily scheduled notifications
+- Immediate test notifications
+- Push token management
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 🎨 Design
+
+- **Color Scheme**: NASA-inspired (NASA Blue: #0B3D91, NASA Red: #FC3D21)
+- **UI/UX**: Clean, modern interface with intuitive navigation
+- **Responsive**: Adapts to different screen sizes
+- **Dark Mode**: Automatic theme support
+
+## 📝 Usage
+
+1. **First Launch**: Register a new account
+2. **Home Screen**: View today's APOD, add to favorites
+3. **Favorites**: Manage your saved astronomy pictures
+4. **Notes**: Add personal notes to any APOD
+5. **History**: Browse past 30 days of APODs
+6. **Profile**: Configure notifications, manage data
+
+## 🔔 Notifications Setup
+
+The app requests notification permissions on first launch. Enable them to receive:
+- Daily APOD notifications at 9:00 AM
+- Custom notifications for special events
+
+## 🚀 Building for Production
+
+```bash
+# Build for Android
+npx expo build:android
+
+# Build for iOS
+npx expo build:ios
+```
+
+## 📄 License
+
+This project is built for educational purposes using NASA's public API.
+
+## 🌟 Credits
+
+- **NASA API**: https://api.nasa.gov/
+- **Expo**: https://expo.dev/
+- **React Native**: https://reactnative.dev/

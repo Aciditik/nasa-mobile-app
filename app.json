@@ -8,8 +8,17 @@
     "scheme": "bgmobileapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id-here"
+      }
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.nasaexplorer.app",
+      "infoPlist": {
+        "NSUserNotificationsUsageDescription": "This app uses notifications to send you daily astronomy pictures and updates."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +28,13 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.nasaexplorer.app",
+      "permissions": [
+        "NOTIFICATIONS",
+        "RECEIVE_BOOT_COMPLETED",
+        "VIBRATE"
+      ]
     },
     "web": {
       "output": "static",
@@ -37,6 +52,15 @@
           "dark": {
             "backgroundColor": "#000000"
           }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#0B3D91",
+          "sounds": [],
+          "mode": "production"
         }
       ]
     ],

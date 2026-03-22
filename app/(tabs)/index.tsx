@@ -1,98 +1,194 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { ArticleCard } from '@/components/ArticleCard';
+import { NewsCard } from '@/components/NewsCard';
+import { StatCard } from '@/components/StatCard';
+import { useFavorites } from '@/contexts/FavoritesContext';
+import { APOD, nasaApiService } from '@/services/api.service';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    FlatList,
+    RefreshControl,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
+} from 'react-native';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [apods, setApods] = useState<APOD[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites();
+  const router = useRouter();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    loadAPODs();
+  }, []);
+
+  const loadAPODs = async () => {
+    try {
+      setIsLoading(true);
+      const endDate = new Date();
+      const startDate = new Date();
+      startDate.setDate(endDate.getDate() - 5);
+
+      const data = await nasaApiService.getAPODRange(
+        startDate.toISOString().split('T')[0],
+        endDate.toISOString().split('T')[0]
+      );
+      setApods(data.reverse());
+    } catch (error) {
+      console.error('Error loading APODs:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadAPODs();
+    setRefreshing(false);
+  };
+
+  const handleCardPress = (apod: APOD) => {
+    router.push(`/apod/detail/${apod.date}` as any);
+  };
+
+  const renderItem = ({ item, index }: { item: APOD; index: number }) => {
+    const cardType = index % 3;
+
+    if (cardType === 0) {
+      return (
+        <NewsCard
+          title={item.title}
+          date={item.date.toUpperCase()}
+          description={item.explanation}
+          imageUrl={item.url}
+          onPress={() => handleCardPress(item)}
+          variant="large"
+        />
+      );
+    } else if (cardType === 1) {
+      return (
+        <ArticleCard
+          title={item.title}
+          category="MORE ABOUT INGENUITY"
+          content={item.explanation}
+          imageUrl={item.url}
+          onPress={() => handleCardPress(item)}
+        />
+      );
+    } else {
+      return (
+        <StatCard
+          title={item.title}
+          description={item.explanation}
+          imageUrl={item.url}
+          onPress={() => handleCardPress(item)}
+        />
+      );
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>Loading NASA Stories...</Text>
+      </View>
+    );
+  }
+
+  return (
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>NASA</Text>
+        <Text style={styles.headerSubtitle}>Explore the Universe</Text>
+      </View>
+
+      <FlatList
+        data={apods}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.date}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={350}
+        decelerationRate="fast"
+        contentContainerStyle={styles.listContent}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor="#fff"
+          />
+        }
+      />
+
+      <View style={styles.footer}>
+        <View style={styles.indicator} />
+        <View style={[styles.indicator, styles.indicatorInactive]} />
+        <View style={[styles.indicator, styles.indicatorInactive]} />
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  loadingText: {
+    marginTop: 20,
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '300',
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 30,
+    paddingBottom: 20,
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: 2,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.6)',
+    marginTop: 4,
+    fontWeight: '300',
+  },
+  listContent: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 30,
     gap: 8,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#fff',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  indicatorInactive: {
+    backgroundColor: 'rgba(255,255,255,0.3)',
   },
 });
