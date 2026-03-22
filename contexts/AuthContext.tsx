@@ -1,5 +1,12 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { storageService } from '@/services/storage.service';
+import { backendService } from "@/services/backend.service";
+import { storageService } from "@/services/storage.service";
+import React, {
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 
 export interface User {
   id: string;
@@ -21,7 +28,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 };
@@ -48,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       }
     } catch (error) {
-      console.error('Error loading user:', error);
+      console.error("Error loading user:", error);
     } finally {
       setIsLoading(false);
     }
@@ -57,22 +64,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string) => {
     try {
       if (!email || !password) {
-        throw new Error('Email and password are required');
+        throw new Error("Email and password are required");
       }
 
-      const mockUser: User = {
-        id: Date.now().toString(),
-        email,
-        name: email.split('@')[0],
-      };
+      const response = await backendService.auth.login(email, password);
 
-      const mockToken = `token_${Date.now()}`;
-
-      await storageService.saveAuthToken(mockToken);
-      await storageService.saveUser(mockUser);
-      setUser(mockUser);
+      await storageService.saveAuthToken(response.token);
+      await storageService.saveUser(response.user);
+      setUser(response.user);
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       throw error;
     }
   };
@@ -80,33 +81,32 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const register = async (email: string, password: string, name: string) => {
     try {
       if (!email || !password || !name) {
-        throw new Error('All fields are required');
+        throw new Error("All fields are required");
       }
 
-      const mockUser: User = {
-        id: Date.now().toString(),
+      const response = await backendService.auth.register(
         email,
+        password,
         name,
-      };
+      );
 
-      const mockToken = `token_${Date.now()}`;
-
-      await storageService.saveAuthToken(mockToken);
-      await storageService.saveUser(mockUser);
-      setUser(mockUser);
+      await storageService.saveAuthToken(response.token);
+      await storageService.saveUser(response.user);
+      setUser(response.user);
     } catch (error) {
-      console.error('Register error:', error);
+      console.error("Register error:", error);
       throw error;
     }
   };
 
   const logout = async () => {
     try {
+      await backendService.auth.logout();
       await storageService.removeAuthToken();
       await storageService.removeUser();
       setUser(null);
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
       throw error;
     }
   };

@@ -1,6 +1,5 @@
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
+import * as Notifications from "expo-notifications";
+import { Platform } from "react-native";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -14,48 +13,48 @@ Notifications.setNotificationHandler({
 
 export const notificationService = {
   registerForPushNotifications: async (): Promise<string | null> => {
-    let token = null;
+    const { status: existingStatus } =
+      await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
 
-    if (Device.isDevice) {
-      const { status: existingStatus } = await Notifications.getPermissionsAsync();
-      let finalStatus = existingStatus;
-
-      if (existingStatus !== 'granted') {
-        const { status } = await Notifications.requestPermissionsAsync();
-        finalStatus = status;
-      }
-
-      if (finalStatus !== 'granted') {
-        alert('Failed to get push token for push notification!');
-        return null;
-      }
-
-      token = (await Notifications.getExpoPushTokenAsync()).data;
-      console.log('Push token:', token);
-    } else {
-      alert('Must use physical device for Push Notifications');
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
     }
 
-    if (Platform.OS === 'android') {
-      Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
+    if (finalStatus !== "granted") {
+      console.log("Notification permissions not granted");
+      return null;
+    }
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("default", {
+        name: "default",
         importance: Notifications.AndroidImportance.MAX,
         vibrationPattern: [0, 250, 250, 250],
-        lightColor: '#FF231F7C',
+        lightColor: "#FF231F7C",
       });
     }
 
-    return token;
+    console.log("Notifications permissions granted");
+    return "local-notifications-enabled";
   },
 
-  scheduleLocalNotification: async (title: string, body: string, seconds: number = 5): Promise<string> => {
+  scheduleLocalNotification: async (
+    title: string,
+    body: string,
+    seconds: number = 5,
+  ): Promise<string> => {
     const id = await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
-        data: { data: 'goes here' },
+        data: { data: "goes here" },
       },
-      trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+        seconds,
+      },
     });
     return id;
   },
@@ -63,9 +62,9 @@ export const notificationService = {
   scheduleDailyAPODNotification: async (): Promise<string> => {
     const id = await Notifications.scheduleNotificationAsync({
       content: {
-        title: '🌌 Daily NASA Picture',
+        title: "🌌 Daily NASA Picture",
         body: "Today's Astronomy Picture of the Day is ready!",
-        data: { type: 'daily_apod' },
+        data: { type: "daily_apod" },
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
@@ -84,23 +83,28 @@ export const notificationService = {
     await Notifications.cancelAllScheduledNotificationsAsync();
   },
 
-  sendImmediateNotification: async (title: string, body: string): Promise<void> => {
+  sendImmediateNotification: async (
+    title: string,
+    body: string,
+  ): Promise<void> => {
     await Notifications.scheduleNotificationAsync({
       content: {
         title,
         body,
-        data: { data: 'goes here' },
+        data: { data: "goes here" },
       },
       trigger: null,
     });
   },
 
-  addNotificationReceivedListener: (callback: (notification: Notifications.Notification) => void) => {
+  addNotificationReceivedListener: (
+    callback: (notification: Notifications.Notification) => void,
+  ) => {
     return Notifications.addNotificationReceivedListener(callback);
   },
 
   addNotificationResponseReceivedListener: (
-    callback: (response: Notifications.NotificationResponse) => void
+    callback: (response: Notifications.NotificationResponse) => void,
   ) => {
     return Notifications.addNotificationResponseReceivedListener(callback);
   },

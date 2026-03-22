@@ -1,6 +1,13 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { storageService } from '@/services/storage.service';
-import { APOD } from '@/services/api.service';
+import { APOD } from "@/services/api.service";
+import { backendService } from "@/services/backend.service";
+import React, {
+    createContext,
+    ReactNode,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
+import { useAuth } from "./AuthContext";
 
 interface FavoritesContextType {
   favorites: APOD[];
@@ -11,12 +18,14 @@ interface FavoritesContextType {
   refreshFavorites: () => Promise<void>;
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
+const FavoritesContext = createContext<FavoritesContextType | undefined>(
+  undefined,
+);
 
 export const useFavorites = () => {
   const context = useContext(FavoritesContext);
   if (!context) {
-    throw new Error('useFavorites must be used within a FavoritesProvider');
+    throw new Error("useFavorites must be used within a FavoritesProvider");
   }
   return context;
 };
@@ -25,20 +34,32 @@ interface FavoritesProviderProps {
   children: ReactNode;
 }
 
-export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }) => {
+export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({
+  children,
+}) => {
   const [favorites, setFavorites] = useState<APOD[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    loadFavorites();
-  }, []);
+    if (isAuthenticated) {
+      loadFavorites();
+    } else {
+      setFavorites([]);
+      setIsLoading(false);
+    }
+  }, [isAuthenticated]);
 
   const loadFavorites = async () => {
     try {
-      const savedFavorites = await storageService.getFavorites();
+      setIsLoading(true);
+      console.log("Loading favorites, isAuthenticated:", isAuthenticated);
+      const savedFavorites = await backendService.favorites.getAll();
+      console.log("Loaded favorites count:", savedFavorites.length);
       setFavorites(savedFavorites);
     } catch (error) {
-      console.error('Error loading favorites:', error);
+      console.error("Error loading favorites:", error);
+      setFavorites([]);
     } finally {
       setIsLoading(false);
     }
@@ -46,21 +67,31 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
 
   const addFavorite = async (apod: APOD) => {
     try {
-      await storageService.addFavorite(apod);
-      setFavorites((prev) => [...prev, { ...apod, isFavorite: true }]);
+      await backendService.favorites.add({
+        date: apod.date,
+        title: apod.title,
+        explanation: apod.explanation,
+        url: apod.url,
+        media_type: apod.media_type,
+        hdurl: apod.hdurl,
+        copyright: apod.copyright,
+      });
+      await loadFavorites();
     } catch (error) {
-      console.error('Error adding favorite:', error);
+      console.error("Error adding favorite:", error);
       throw error;
     }
   };
 
   const removeFavorite = async (date: string) => {
     try {
-      await storageService.removeFavorite(date);
-      setFavorites((prev) => prev.filter((fav) => fav.date !== date));
-    } catch (error) {
-      console.error('Error removing favorite:', error);
-      throw error;
+      await backendService.favorites.remove(date);
+    } catch (error: any) {
+      if (!error?.message?.includes("not found")) {
+        console.error("Error removing favorite:", error);
+      }
+    } finally {
+      await loadFavorites();
     }
   };
 
@@ -81,5 +112,9 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     refreshFavorites,
   };
 
-  return <FavoritesContext.Provider value={value}>{children}</FavoritesContext.Provider>;
+  return (
+    <FavoritesContext.Provider value={value}>
+      {children}
+    </FavoritesContext.Provider>
+  );
 };
