@@ -370,28 +370,8 @@ npm start  # Will recreate automatically
 
 ## Screenshots
 
-**Note**: Add screenshots to `screenshots/` folder showing:
-
-- Login/Register screens
-- Home screen with APOD cards
-- Favorites tab
-- Detail screen with heart button
-- Notes CRUD interface
-- Profile/Settings
-- Notification permission request
+**Note**: Add screenshots to `screenshots/` 
 
 ## Demo Video
 
-**Full application demonstration**: [`video/Screen record.mov`](video/Screen%20record.mov)
-
-The video demonstrates:
-
-- ✅ User authentication (login/register)
-- ✅ Complete navigation flow
-- ✅ CRUD operations (favorites and notes)
-- ✅ API integration (NASA APOD, NEO, JWST)
-- ✅ Native notifications
-- ✅ Data persistence
-- ✅ Error handling
-
----
+**Full application demonstration**: [`video/Screen record.mov`]
